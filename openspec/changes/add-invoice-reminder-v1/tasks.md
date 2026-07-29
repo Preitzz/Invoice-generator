@@ -49,7 +49,7 @@
 
 - [ ] 7.1 Implement append-only audit_log writes for every state-changing action (manual and system actor)
 - [ ] 7.2 Enforce no UPDATE/DELETE grants on the audit_log table
-- [ ] 7.3 Implement 7-year retention guard preventing deletion of invoices/payments/audit entries before retention expiry
+- [x] 7.3 Implement 7-year retention guard preventing deletion of invoices/payments/audit entries before retention expiry — enforced via DB grant revocation (REVOKE DELETE FROM app_user) on `invoices` and `payments`, matching the existing `audit_log` enforcement (0010_create_audit_log.py). See `backend/alembic/versions/0014_revoke_delete_invoices_payments.py` and `backend/tests/integration/test_financial_records_no_hard_delete.py`. `invoice_line_items` DELETE is intentionally left grantable — it is not named in the spec's retention requirement, and `update_invoice` legitimately deletes/recreates a draft invoice's line items in place when edited.
 
 ## 8. Reporting & Dashboard
 
