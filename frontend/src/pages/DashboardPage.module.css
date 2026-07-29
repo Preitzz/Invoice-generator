@@ -1,0 +1,26 @@
+.stats {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  min-width: 180px;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
