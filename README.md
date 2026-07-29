@@ -7,6 +7,8 @@ This is a complete **OpenSpec** specification for a **Single-Tenant Invoice Mana
 Generated: 2026-07-29T04:47:47.250150
 Source: invoice-reminder-spec.md (v1 Draft)
 
+> **OpenSpec artifacts:** the `openspec/` directory contains this system modeled with the [OpenSpec](https://github.com/Fission-AI/OpenSpec) CLI — capability specs under `openspec/specs/` (after archiving) and the `add-invoice-reminder-v1` change proposal under `openspec/changes/add-invoice-reminder-v1/` (proposal, capability specs, design, and tasks), which resolves all 11 open questions from `invoice-reminder-spec.md` Section 14.
+
 ## Files Included
 
 ### 1. **openapi_spec.json / openapi_spec.yaml**
