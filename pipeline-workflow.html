@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDD-100 · Spec-Driven Delivery Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#DDE3DD;
+  --card:#EFF2EE;
+  --card-2:#E6EAE5;
+  --ink:#14181A;
+  --ink-2:#4C564F;
+  --ink-3:#6E7A72;
+  --rule:#AEB7AF;
+  --rule-2:#8B958D;
+  --hold:#A4231C;
+  --hold-tint:#F3DFDD;
+  --tool:#0D5F6B;
+  --tool-tint:#D9E6E7;
+  --released:#2C6E49;
+  --spine:38px;
+  --maxw:1080px;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Public Sans",system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.55;
+  background-image:linear-gradient(rgba(20,24,26,.028) 1px,transparent 1px);
+  background-size:100% 28px;
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px 96px}
+
+h1,h2,h3,h4{font-family:"Archivo",system-ui,sans-serif;margin:0;font-weight:800;letter-spacing:-.01em}
+p{margin:0 0 10px}
+ul,ol{margin:0 0 10px;padding-left:18px}
+li{margin:0 0 5px}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+
+/* ---------- masthead ---------- */
+.masthead{border-bottom:3px solid var(--ink);padding:26px 0 0}
+.mast-top{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  gap:20px;flex-wrap:wrap;
+  border-bottom:1px solid var(--rule-2);padding-bottom:8px;
+}
+.docid{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;color:var(--ink-2)}
+.docid b{color:var(--ink);font-weight:600}
+.mast-title{padding:20px 0 14px}
+.mast-title h1{
+  font-size:clamp(34px,7vw,66px);
+  line-height:.93;text-transform:uppercase;letter-spacing:-.025em;
+}
+.mast-title h1 span{display:block;color:var(--ink-3)}
+.mast-sub{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:0;border-top:1px solid var(--rule-2);
+}
+.mast-cell{padding:10px 14px 12px;border-right:1px solid var(--rule-2)}
+.mast-cell:first-child{padding-left:0}
+.mast-cell:last-child{border-right:0}
+.mast-cell .v{font-family:"Archivo",sans-serif;font-weight:600;font-size:14px;margin-top:2px}
+
+/* ---------- tool selector ---------- */
+.toolbar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:14px 0;border-bottom:1px solid var(--rule-2);
+}
+.seg{display:flex;border:1.5px solid var(--ink)}
+.seg button{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:transparent;color:var(--ink);
+  border:0;border-right:1px solid var(--ink);
+  padding:8px 13px;cursor:pointer;
+}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--tool);outline-offset:2px}
+.toolnote{font-size:12.5px;color:var(--ink-2);max-width:56ch}
+
+/* ---------- standing orders ---------- */
+.orders{margin:34px 0 6px;border:1.5px solid var(--ink);background:var(--card)}
+.orders-hd{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 14px;background:var(--ink);color:var(--paper);
+}
+.orders-hd .eyebrow{color:var(--paper);opacity:.72}
+.orders-hd h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em}
+.orders-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.order{padding:15px 16px;border-right:1px solid var(--rule);border-top:1px solid var(--rule)}
+.order:last-child{border-right:0}
+.order h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.order p{font-size:13.5px;color:var(--ink-2);margin:0}
+.order .tag{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10px;
+  letter-spacing:.1em;padding:1px 5px;border:1px solid var(--hold);color:var(--hold);
+  margin-bottom:7px;
+}
+
+/* ---------- spine ---------- */
+.spine{position:relative;margin-top:44px;padding-left:calc(var(--spine) + 22px)}
+.spine::before{
+  content:"";position:absolute;left:calc(var(--spine)/2);top:6px;bottom:120px;
+  width:1.5px;background:var(--rule-2);
+}
+
+.node{position:relative;margin-bottom:26px}
+.marker{
+  position:absolute;left:calc(-1 * (var(--spine) + 22px));top:0;
+  width:var(--spine);height:var(--spine);
+  display:flex;align-items:center;justify-content:center;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+  background:var(--paper);border:1.5px solid var(--ink);border-radius:50%;
+}
+
+/* phase card */
+.phase{background:var(--card);border:1px solid var(--rule-2)}
+.phase-hd{padding:14px 18px 12px;border-bottom:1px solid var(--rule)}
+.phase-hd h2{font-size:20px;letter-spacing:-.015em;margin-top:3px}
+.phase-body{padding:15px 18px 17px}
+.phase-body>*:last-child{margin-bottom:0}
+.meta{
+  display:flex;gap:18px;flex-wrap:wrap;
+  padding:9px 18px;background:var(--card-2);border-bottom:1px solid var(--rule);
+  font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-2);
+}
+.meta b{color:var(--ink);font-weight:600}
+
+/* command lines */
+.cmd{
+  display:block;background:var(--ink);color:#E8EFEA;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;
+  padding:8px 12px;margin:6px 0;overflow-x:auto;white-space:pre;
+}
+.cmd .p{color:#79A9A0}
+.cmd.chat{background:var(--tool)}
+.cmd.chat .p{color:#9FD4DA}
+.inline{
+  font-family:"IBM Plex Mono",monospace;font-size:.88em;
+  background:var(--tool-tint);color:var(--tool);padding:1px 4px;
+}
+.filepath{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--card-2);padding:1px 4px;border-bottom:1px solid var(--rule)}
+
+.out{
+  margin-top:12px;padding:10px 12px;border-left:3px solid var(--ink);
+  background:var(--card-2);font-size:13px;
+}
+.out .eyebrow{display:block;margin-bottom:4px}
+
+.warn{
+  margin-top:12px;padding:10px 12px;
+  background:var(--hold-tint);border-left:3px solid var(--hold);font-size:13px;
+}
+.warn .eyebrow{color:var(--hold);display:block;margin-bottom:3px}
+
+/* ---------- hold point ---------- */
+.hold{border:2px solid var(--hold);background:var(--card)}
+.hazard{
+  height:14px;
+  background:repeating-linear-gradient(-45deg,var(--hold) 0 9px,transparent 9px 20px);
+}
+.hold-hd{padding:13px 18px 12px;border-bottom:1px solid var(--hold)}
+.hold-hd .eyebrow{color:var(--hold)}
+.hold-hd h2{font-size:20px;color:var(--hold);text-transform:uppercase;letter-spacing:-.01em;margin-top:3px}
+.hold-hd p{margin:6px 0 0;font-size:13.5px;color:var(--ink-2)}
+.marker.hold-marker{border-color:var(--hold);color:var(--hold);border-width:2px}
+
+.checks{list-style:none;margin:0;padding:0}
+.checks li{
+  display:flex;gap:11px;align-items:flex-start;
+  padding:9px 18px;border-bottom:1px solid var(--rule);margin:0;
+}
+.checks li:last-child{border-bottom:0}
+.checks input{
+  appearance:none;width:16px;height:16px;flex:0 0 auto;margin-top:2px;
+  border:1.5px solid var(--ink-3);background:transparent;cursor:pointer;
+}
+.checks input:checked{background:var(--released);border-color:var(--released)}
+.checks input:checked::after{
+  content:"";display:block;width:5px;height:9px;margin:1px auto 0;
+  border:solid var(--card);border-width:0 2px 2px 0;transform:rotate(42deg);
+}
+.checks input:focus-visible{outline:2px solid var(--tool);outline-offset:2px}
+.checks label{font-size:13.5px;cursor:pointer}
+.checks .fail{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--hold);margin-top:2px}
+
+.signoff{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:14px 18px;border-top:2px solid var(--hold);background:var(--card-2);
+}
+.sign-btn{
+  font-family:"Archivo",sans-serif;font-weight:600;font-size:12px;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:var(--ink);color:var(--paper);border:0;padding:10px 18px;cursor:pointer;
+}
+.sign-btn[disabled]{background:transparent;color:var(--ink-3);border:1.5px dashed var(--rule-2);cursor:not-allowed}
+.sign-btn:focus-visible{outline:2px solid var(--tool);outline-offset:2px}
+.sign-status{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-2)}
+.stamp{
+  display:none;font-family:"Archivo",sans-serif;font-weight:800;
+  font-size:13px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--released);border:2px solid var(--released);
+  box-shadow:inset 0 0 0 1px var(--released);
+  padding:6px 14px;transform:rotate(-4deg);
+  margin-left:auto;text-align:center;line-height:1.15;
+}
+.stamp small{display:block;font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.08em;font-weight:500;opacity:.85}
+.stamp.on{display:block;animation:thud .22s ease-out}
+@keyframes thud{
+  0%{transform:rotate(-4deg) scale(1.5);opacity:0}
+  100%{transform:rotate(-4deg) scale(1);opacity:1}
+}
+
+/* ---------- tables ---------- */
+.tbl{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+.tbl th{
+  text-align:left;font-family:"IBM Plex Mono",monospace;font-weight:600;
+  font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+  padding:6px 10px 6px 0;border-bottom:1.5px solid var(--ink);
+}
+.tbl td{padding:7px 10px 7px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.tbl td:last-child,.tbl th:last-child{padding-right:0}
+.tbl .mono{font-size:12px}
+
+/* ---------- reference blocks ---------- */
+.ref{margin-top:52px;border-top:3px solid var(--ink);padding-top:22px}
+.ref h2{font-size:26px;text-transform:uppercase;letter-spacing:-.02em}
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;margin-top:18px}
+.panel{background:var(--card);border:1px solid var(--rule-2);padding:16px 18px}
+.panel h3{font-size:14px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.banned{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.banned span{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;
+  border:1px solid var(--hold);color:var(--hold);padding:2px 6px;
+  text-decoration:line-through;text-decoration-thickness:1px;
+}
+.card-checklist{list-style:none;padding:0;margin:8px 0 0}
+.card-checklist li{
+  display:flex;gap:9px;font-size:13px;padding:5px 0;border-bottom:1px dotted var(--rule);
+}
+.card-checklist li::before{
+  content:"";flex:0 0 auto;width:12px;height:12px;margin-top:4px;border:1.5px solid var(--ink-3);
+}
+
+footer{margin-top:56px;border-top:1px solid var(--rule-2);padding-top:16px;font-size:12px;color:var(--ink-2)}
+footer a{color:var(--tool)}
+footer ul{list-style:none;padding:0;columns:2;column-gap:26px}
+
+@media (max-width:640px){
+  :root{--spine:30px}
+  .spine{padding-left:calc(var(--spine) + 14px)}
+  .marker{left:calc(-1 * (var(--spine) + 14px));font-size:10px}
+  .mast-cell{border-right:0;border-bottom:1px solid var(--rule);padding-left:0}
+  .stamp{margin-left:0}
+  footer ul{columns:1}
+}
+@media (prefers-reduced-motion:reduce){
+  .stamp.on{animation:none}
+}
+@media print{
+  body{background:#fff}
+  .toolbar,.stamp{display:none}
+  .node{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============ MASTHEAD ============ -->
+<header class="masthead">
+  <div class="mast-top">
+    <div class="docid"><b>SDD-100</b> &nbsp;/&nbsp; ISSUE 1 &nbsp;/&nbsp; CAPSTONE DELIVERY</div>
+    <div class="docid">ROUTING CARD — RETAIN WITH PROJECT</div>
+  </div>
+
+  <div class="mast-title">
+    <h1>Spec-Driven<br>Delivery <span>Pipeline</span></h1>
+  </div>
+
+  <div class="mast-sub">
+    <div class="mast-cell">
+      <div class="eyebrow">Input</div>
+      <div class="v">One crude prompt</div>
+    </div>
+    <div class="mast-cell">
+      <div class="eyebrow">Output</div>
+      <div class="v">Code + decision record</div>
+    </div>
+    <div class="mast-cell">
+      <div class="eyebrow">Hold points</div>
+      <div class="v">3 — none skippable</div>
+    </div>
+    <div class="mast-cell">
+      <div class="eyebrow">Crew</div>
+      <div class="v">2–5, one named reviewer</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="eyebrow">Agent in use</span>
+    <div class="seg" role="group" aria-label="Select coding agent">
+      <button type="button" data-tool="claude" aria-pressed="true">Claude&nbsp;Code</button>
+      <button type="button" data-tool="cursor" aria-pressed="false">Cursor</button>
+      <button type="button" data-tool="opencode" aria-pressed="false">OpenCode</button>
+    </div>
+    <p class="toolnote" id="toolnote"></p>
+  </div>
+</header>
+
+<!-- ============ STANDING ORDERS ============ -->
+<section class="orders">
+  <div class="orders-hd">
+    <span class="eyebrow">Section 0</span>
+    <h2>Standing orders</h2>
+  </div>
+  <div class="orders-body">
+    <div class="order">
+      <span class="tag">RULE 1</span>
+      <h3>One change open at a time</h3>
+      <p>No second proposal until the current one is archived. Parallel changes make the delta model meaningless.</p>
+    </div>
+    <div class="order">
+      <span class="tag">RULE 2</span>
+      <h3>Ambiguity stops the line</h3>
+      <p>An agent that guesses has produced a defect. Unresolved questions go in the register, never into generated code.</p>
+    </div>
+    <div class="order">
+      <span class="tag">RULE 3</span>
+      <h3>Scope lock</h3>
+      <p>The diff touches only files named in <span class="filepath">tasks.md</span>. Everything else is rejected at review.</p>
+    </div>
+    <div class="order">
+      <span class="tag">RULE 4</span>
+      <h3>Specs change by archive only</h3>
+      <p>Never hand-edit <span class="filepath">openspec/specs/</span>. It fills in as changes are synced and archived.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SPINE ============ -->
+<div class="spine">
+
+  <!-- PHASE 00 -->
+  <section class="node">
+    <div class="marker">00</div>
+    <div class="phase">
+      <div class="phase-hd">
+        <span class="eyebrow">Phase 00</span>
+        <h2>Environment setup</h2>
+      </div>
+      <div class="meta"><span>OWNER <b>Whole team</b></span><span>PRODUCES <b>openspec/ scaffolding</b></span><span>ONCE PER PROJECT</span></div>
+      <div class="phase-body">
+        <p>Node 20.19+ required. Install the CLI, scaffold the repo, then widen the workflow profile so you get artifact-by-artifact control.</p>
+        <code class="cmd">npm install -g @fission-ai/openspec@latest</code>
+        <code class="cmd">cd your-capstone
+openspec init --tools claude,cursor,opencode</code>
+        <code class="cmd">openspec config profile   <span class="p"># add: continue, verify</span>
+openspec update</code>
+        <div class="warn">
+          <span class="eyebrow">Caution — Windows</span>
+          Install Node, the CLI and your agent all inside WSL, and keep the repo in the Linux filesystem. A Windows CLI driving a WSL agent is the most common setup failure. Set <span class="filepath">git config core.autocrlf input</span> before any spec is generated.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHASE 01 -->
+  <section class="node">
+    <div class="marker">01</div>
+    <div class="phase">
+      <div class="phase-hd">
+        <span class="eyebrow">Phase 01</span>
+        <h2>Crude prompt → Level&nbsp;1 spec</h2>
+      </div>
+      <div class="meta"><span>OWNER <b>Team</b></span><span>PRODUCES <b>docs/01-spec-L1.md</b></span><span>NOT AN OPENSPEC STEP</span></div>
+      <div class="phase-body">
+        <p>Write <span class="filepath">docs/00-crude-prompt.md</span> in ten minutes, unedited. Then have the agent expand it into a behavioural spec — in ordinary chat, not through OpenSpec.</p>
+        <p>The generation prompt must state: one SHALL per requirement, one scenario per requirement, no invented requirements, no architecture, and every ambiguity logged rather than resolved.</p>
+        <div class="out">
+          <span class="eyebrow">Artifact sections</span>
+          Purpose · Actors · Domain objects with lifecycle states · Requirements (SHALL + Given/When/Then) · Invariants · Out of scope · <b>Open questions</b> · <b>Assumptions the generator made</b>
+        </div>
+        <div class="warn">
+          <span class="eyebrow">Why not OpenSpec here</span>
+          OpenSpec generates artifacts from a scoped request. Feed it a whole product idea and you get one bloated change folder, which defeats delta tracking entirely.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GATE G1 -->
+  <section class="node" data-gate="G1">
+    <div class="marker hold-marker">G1</div>
+    <div class="hold">
+      <div class="hazard"></div>
+      <div class="hold-hd">
+        <span class="eyebrow">Hold point G1 — inspection required</span>
+        <h2>Level 1 spec review</h2>
+        <p>One named reviewer. Not the team. Committees do not catch ambiguity. All ten items must pass; a failure returns a specific edit instruction, never “make it better”.</p>
+      </div>
+      <ul class="checks">
+        <li><input type="checkbox" id="g1-1"><label for="g1-1">Every requirement is independently testable<span class="fail">fail: “the system SHALL be reliable”</span></label></li>
+        <li><input type="checkbox" id="g1-2"><label for="g1-2">Every requirement carries at least one scenario<span class="fail">fail: requirement with no Given/When/Then</span></label></li>
+        <li><input type="checkbox" id="g1-3"><label for="g1-3">No requirement joins two behaviours with “and”<span class="fail">fail: “SHALL validate input and send email”</span></label></li>
+        <li><input type="checkbox" id="g1-4"><label for="g1-4">Every domain object has a defined lifecycle<span class="fail">fail: a Booking with no states</span></label></li>
+        <li><input type="checkbox" id="g1-5"><label for="g1-5">Every state has a defined exit<span class="fail">fail: a state nothing transitions out of</span></label></li>
+        <li><input type="checkbox" id="g1-6"><label for="g1-6">Conflict and failure paths specified, not only happy paths<span class="fail">fail: no double-booking rule</span></label></li>
+        <li><input type="checkbox" id="g1-7"><label for="g1-7">Open questions register is non-empty<span class="fail">fail: empty section means the agent guessed</span></label></li>
+        <li><input type="checkbox" id="g1-8"><label for="g1-8">Out of scope lists three or more items<span class="fail">fail: the project is unscoped</span></label></li>
+        <li><input type="checkbox" id="g1-9"><label for="g1-9">No banned vocabulary anywhere in the document<span class="fail">fail: “robust”, “seamless”, “as appropriate”</span></label></li>
+        <li><input type="checkbox" id="g1-10"><label for="g1-10">Every listed assumption read, then accepted or corrected<span class="fail">fail: unread assumptions become silent decisions</span></label></li>
+      </ul>
+      <div class="signoff">
+        <button type="button" class="sign-btn" disabled>Sign off G1</button>
+        <span class="sign-status">0 / 10 verified</span>
+        <div class="stamp">Released<small>G1 · <span class="stamp-date"></span></small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHASE 02 -->
+  <section class="node">
+    <div class="marker">02</div>
+    <div class="phase">
+      <div class="phase-hd">
+        <span class="eyebrow">Phase 02</span>
+        <h2>Slice the spec</h2>
+      </div>
+      <div class="meta"><span>OWNER <b>Team + agent</b></span><span>PRODUCES <b>a slice table</b></span><span>NO FILES WRITTEN</span></div>
+      <div class="phase-body">
+        <p>First make the spec ambient. Add to <span class="filepath">openspec/config.yaml</span> a <span class="inline">context:</span> block naming <span class="filepath">docs/01-spec-L1.md</span> as authoritative, plus your stack and conventions. Every later proposal inherits it.</p>
+        <code class="cmd chat"><span class="p">/opsx</span><span class="sep">:</span>explore</code>
+        <p>Ask for the smallest set of independently shippable changes, each with a kebab-case name, the requirement IDs it covers, and its dependencies. Explicitly forbid writing files.</p>
+        <table class="tbl">
+          <thead><tr><th>Order</th><th>Slice</th><th>Covers</th><th>Needs</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">1</td><td class="mono">room-inventory</td><td>REQ-001..003</td><td>—</td></tr>
+            <tr><td class="mono">2</td><td class="mono">availability-query</td><td>REQ-004..005</td><td>1</td></tr>
+            <tr><td class="mono">3</td><td class="mono">create-booking-conflict-check</td><td>REQ-006..009</td><td>2</td></tr>
+            <tr><td class="mono">4</td><td class="mono">cancel-and-release</td><td>REQ-010..011</td><td>3</td></tr>
+            <tr><td class="mono">5</td><td class="mono">booking-notifications</td><td>REQ-012</td><td>3</td></tr>
+            <tr><td class="mono">6</td><td class="mono">recurring-bookings</td><td>REQ-013..015</td><td>3</td></tr>
+          </tbody>
+        </table>
+        <div class="out">
+          <span class="eyebrow">Calibration</span>
+          A capstone should yield <b>4–8 slices</b>. Fifteen means your slices are too fine. Two means too coarse. Re-slice before proceeding — re-slicing later means discarding generated work.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHASE 03 -->
+  <section class="node">
+    <div class="marker">03</div>
+    <div class="phase">
+      <div class="phase-hd">
+        <span class="eyebrow">Phase 03</span>
+        <h2>Generate change artifacts</h2>
+      </div>
+      <div class="meta"><span>OWNER <b>Slice owner</b></span><span>PRODUCES <b>openspec/changes/&lt;slice&gt;/</b></span><span>ONE SLICE ONLY</span></div>
+      <div class="phase-body">
+        <p>For the first two slices, generate artifacts one at a time so each is approved before the next is built on top of it.</p>
+        <code class="cmd chat"><span class="p">/opsx</span><span class="sep">:</span>new-change room-inventory
+<span class="p">/opsx</span><span class="sep">:</span>continue</code>
+        <p>Once the team trusts the output, later slices can use the single-pass form:</p>
+        <code class="cmd chat"><span class="p">/opsx</span><span class="sep">:</span>propose availability-query</code>
+        <div class="out">
+          <span class="eyebrow">Change folder contents</span>
+          <span class="filepath">proposal.md</span> why and what changes · <span class="filepath">specs/</span> delta requirements and scenarios · <span class="filepath">design.md</span> technical approach · <span class="filepath">tasks.md</span> implementation checklist
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GATE G2 -->
+  <section class="node" data-gate="G2">
+    <div class="marker hold-marker">G2</div>
+    <div class="hold">
+      <div class="hazard"></div>
+      <div class="hold-hd">
+        <span class="eyebrow">Hold point G2 — inspection required</span>
+        <h2>Change artifact review</h2>
+        <p>Human judgement. Three questions, asked of every change before a line of code is written.</p>
+      </div>
+      <ul class="checks">
+        <li><input type="checkbox" id="g2-1"><label for="g2-1">The delta spec contradicts the L1 spec nowhere — or one of the two has been corrected<span class="fail">never proceed holding both versions</span></label></li>
+        <li><input type="checkbox" id="g2-2"><label for="g2-2">Every dependency, service and table in <span class="filepath">design.md</span> traces to a requirement<span class="fail">agents add infrastructure to look thorough — delete it</span></label></li>
+        <li><input type="checkbox" id="g2-3"><label for="g2-3">No task in <span class="filepath">tasks.md</span> exceeds half a day<span class="fail">a larger task is not a task, it is a plan</span></label></li>
+      </ul>
+      <div class="signoff">
+        <button type="button" class="sign-btn" disabled>Sign off G2</button>
+        <span class="sign-status">0 / 3 verified</span>
+        <div class="stamp">Released<small>G2 · <span class="stamp-date"></span></small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GATE G3 -->
+  <section class="node" data-gate="G3">
+    <div class="marker hold-marker">G3</div>
+    <div class="hold">
+      <div class="hazard"></div>
+      <div class="hold-hd">
+        <span class="eyebrow">Hold point G3 — automated</span>
+        <h2>Structural validation</h2>
+        <p>Machine check. Cheap, fast, and far narrower than people assume.</p>
+      </div>
+      <div class="phase-body" style="padding:15px 18px 4px">
+        <code class="cmd">openspec validate --strict</code>
+        <div class="warn">
+          <span class="eyebrow">What this does not do</span>
+          It checks structure only — required sections present, format valid, cross-artifact dependencies aligned. It does not check behavioural correctness and it does not run tests. Given/When/Then scenarios are supported but unenforced. <b>A change can pass here and be entirely wrong. G2 is not optional because G3 exists.</b>
+        </div>
+      </div>
+      <ul class="checks">
+        <li><input type="checkbox" id="g3-1"><label for="g3-1">Validation passes with <span class="inline">--strict</span></label></li>
+        <li><input type="checkbox" id="g3-2"><label for="g3-2">SHALL / MUST sits on the requirement body line, not only the heading<span class="fail">most common validation failure</span></label></li>
+        <li><input type="checkbox" id="g3-3"><label for="g3-3">Proposal merged to <span class="inline">main</span> before implementation starts</label></li>
+      </ul>
+      <div class="signoff">
+        <button type="button" class="sign-btn" disabled>Sign off G3</button>
+        <span class="sign-status">0 / 3 verified</span>
+        <div class="stamp">Released<small>G3 · <span class="stamp-date"></span></small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHASE 04 -->
+  <section class="node">
+    <div class="marker">04</div>
+    <div class="phase">
+      <div class="phase-hd">
+        <span class="eyebrow">Phase 04</span>
+        <h2>Implement</h2>
+      </div>
+      <div class="meta"><span>OWNER <b>Slice owner</b></span><span>BRANCH <b>change/&lt;slice&gt;</b></span><span>PRODUCES <b>code + tests</b></span></div>
+      <div class="phase-body">
+        <code class="cmd chat"><span class="p">/opsx</span><span class="sep">:</span>apply</code>
+        <p>Then, <em>before</em> reading the diff, run the agent's own review pass. Treat it as a first reader, not a gate — the docs are explicit that it will not catch everything.</p>
+        <code class="cmd chat"><span class="p">/opsx</span><span class="sep">:</span>verify</code>
+        <code class="cmd">npm test &amp;&amp; npm run lint
+openspec validate --strict
+git commit -am "feat(room-inventory): implement REQ-001..003"</code>
+        <div class="out">
+          <span class="eyebrow">Definition of done</span>
+          All tasks checked · every scenario has an automated test · tests and lint pass · validation passes · no TODO, no placeholder, no commented-out code · no file touched outside <span class="filepath">tasks.md</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHASE 05 -->
+  <section class="node">
+    <div class="marker">05</div>
+    <div class="phase">
+      <div class="phase-hd">
+        <span class="eyebrow">Phase 05</span>
+        <h2>Sync and archive</h2>
+      </div>
+      <div class="meta"><span>OWNER <b>Slice owner</b></span><span>PRODUCES <b>openspec/specs/ + archive/</b></span><span>AFTER MERGE TO MAIN</span></div>
+      <div class="phase-body">
+        <code class="cmd chat"><span class="p">/opsx</span><span class="sep">:</span>sync
+<span class="p">/opsx</span><span class="sep">:</span>archive</code>
+        <p><b>Sync</b> merges the change's delta specs into <span class="filepath">openspec/specs/</span>. <b>Archive</b> files the completed change under <span class="filepath">openspec/archive/</span> with a date prefix.</p>
+        <div class="out">
+          <span class="eyebrow">Why specs/ starts empty</span>
+          It is meant to. The living specification accumulates one archived change at a time. A near-empty <span class="filepath">specs/</span> in week one is correct, not a gap to fill.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHASE 06 -->
+  <section class="node">
+    <div class="marker">06</div>
+    <div class="phase">
+      <div class="phase-hd">
+        <span class="eyebrow">Phase 06</span>
+        <h2>Return to Phase 03 — or close out</h2>
+      </div>
+      <div class="meta"><span>LOOP <b>Once per slice</b></span><span>NEVER BATCH</span></div>
+      <div class="phase-body">
+        <p>Each remaining slice repeats Phase 03 → G2 → G3 → Phase 04 → Phase 05. When the last slice is archived, the deliverables are:</p>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Artifact</th><th>What it proves</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">1</td><td class="mono">docs/00-crude-prompt.md</td><td>The unedited starting point</td></tr>
+            <tr><td class="mono">2</td><td class="mono">docs/01-spec-L1.md</td><td>What the team agreed to build</td></tr>
+            <tr><td class="mono">3</td><td class="mono">openspec/specs/</td><td>The living specification</td></tr>
+            <tr><td class="mono">4</td><td class="mono">openspec/archive/</td><td><b>Why each decision was made</b></td></tr>
+            <tr><td class="mono">5</td><td class="mono">src/ + tests</td><td>Behaviour traceable to scenarios</td></tr>
+          </tbody>
+        </table>
+        <div class="out">
+          <span class="eyebrow">The real deliverable</span>
+          Item 4. Anyone can show working code. The archive shows <b>why</b> it was built that way — which is the thing a capstone is actually assessing.
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /spine -->
+
+<!-- ============ REFERENCE ============ -->
+<section class="ref">
+  <h2>Reference</h2>
+  <div class="ref-grid">
+
+    <div class="panel">
+      <h3>Command index</h3>
+      <table class="tbl">
+        <thead><tr><th>Terminal</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">openspec init --tools …</td><td>Scaffold &amp; install commands</td></tr>
+          <tr><td class="mono">openspec config profile</td><td>Choose workflows</td></tr>
+          <tr><td class="mono">openspec update</td><td>Regenerate after a profile change</td></tr>
+          <tr><td class="mono">openspec list</td><td>List changes or specs</td></tr>
+          <tr><td class="mono">openspec view</td><td>Interactive dashboard</td></tr>
+          <tr><td class="mono">openspec validate --strict</td><td>Structural validation</td></tr>
+        </tbody>
+      </table>
+      <table class="tbl">
+        <thead><tr><th>Agent chat</th><th>When</th></tr></thead>
+        <tbody>
+          <tr><td class="mono"><span class="cmdref" data-cmd="explore"></span></td><td>Before anything. No files.</td></tr>
+          <tr><td class="mono"><span class="cmdref" data-cmd="new-change"></span></td><td>Create the change folder</td></tr>
+          <tr><td class="mono"><span class="cmdref" data-cmd="continue"></span></td><td>One artifact at a time</td></tr>
+          <tr><td class="mono"><span class="cmdref" data-cmd="propose"></span></td><td>All artifacts at once</td></tr>
+          <tr><td class="mono"><span class="cmdref" data-cmd="apply"></span></td><td>Execute tasks.md</td></tr>
+          <tr><td class="mono"><span class="cmdref" data-cmd="verify"></span></td><td>Coherence pass</td></tr>
+          <tr><td class="mono"><span class="cmdref" data-cmd="sync"></span></td><td>Merge deltas into specs/</td></tr>
+          <tr><td class="mono"><span class="cmdref" data-cmd="archive"></span></td><td>File the change</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:12px;color:var(--ink-2);margin:8px 0 0">If commands do not appear, the skills route works independently: <span class="inline">/openspec-propose</span>, <span class="inline">/openspec-apply-change</span>, <span class="inline">/openspec-archive-change</span>.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Controlled language for specs</h3>
+      <p style="font-size:13px;color:var(--ink-2)">Adapted from ASD-STE100 Simplified Technical English — the 1986 aircraft maintenance writing standard built so an instruction cannot be read two ways. Ambiguous specs produce ambiguous code; fix it at the source.</p>
+      <table class="tbl">
+        <tbody>
+          <tr><td>One instruction per sentence. 20 words maximum.</td></tr>
+          <tr><td>Active voice. Name the actor.</td></tr>
+          <tr><td>One word, one meaning, project-wide. No synonyms.</td></tr>
+          <tr><td>No noun cluster longer than three words.</td></tr>
+          <tr><td>Every requirement states its failure behaviour.</td></tr>
+          <tr><td>No unquantified comparative. “Fast” → “under 300&nbsp;ms at p95”.</td></tr>
+          <tr><td>Warnings appear before the step, never after.</td></tr>
+        </tbody>
+      </table>
+      <div class="eyebrow" style="margin-top:12px">Banned — no testable meaning</div>
+      <div class="banned">
+        <span>robust</span><span>seamless</span><span>scalable</span><span>performant</span>
+        <span>user-friendly</span><span>intuitive</span><span>best-practice</span><span>leverage</span>
+        <span>appropriate</span><span>properly</span><span>gracefully</span><span>as needed</span>
+        <span>where relevant</span><span>handle</span><span>support</span><span>and/or</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Anti-slop review card</h3>
+      <p style="font-size:13px;color:var(--ink-2)">Run on every pull request. Print it.</p>
+      <ul class="card-checklist">
+        <li>Every scenario has a test that fails if the behaviour breaks</li>
+        <li>No banned word in any markdown or code comment</li>
+        <li>Every number in the code traces to a number in a requirement</li>
+        <li>No dependency added without justification in the PR</li>
+        <li>No file touched outside <span class="filepath">tasks.md</span></li>
+        <li>Error paths implemented, not only happy paths</li>
+        <li>No TODO, placeholder, or commented-out block</li>
+        <li>Comments explain <em>why</em>, never <em>what</em></li>
+        <li>Someone who didn't write it can explain it from the diff alone</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="eyebrow" style="margin-bottom:8px">Sources — verify before adopting</div>
+  <ul>
+    <li>OpenSpec — github.com/Fission-AI/OpenSpec</li>
+    <li>Supported tools &amp; install paths — /docs/supported-tools.md</li>
+    <li>CLI reference — /docs/cli.md</li>
+    <li>Existing projects — /docs/existing-projects.md</li>
+    <li>OpenCode on Windows — opencode.ai/docs/windows-wsl/</li>
+    <li>OpenCode OpenSpec plugin — github.com/Octane0411/opencode-plugin-openspec</li>
+    <li>ASD-STE100 Simplified Technical English — asd-ste100.org</li>
+    <li>Guardrails source — github.com/woosal1337/blog · videos/ep01-the-cure-for-ai-slop</li>
+  </ul>
+  <p style="margin-top:12px">SDD-100 Issue 1 · companion to <span class="filepath">capstone-sdd-playbook.md</span> · sign-offs are session-only and are not stored.</p>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- tool-aware command syntax ---------- */
+  var TOOLS = {
+    claude: {
+      prefix: "/opsx", sep: ":",
+      note: "Commands live in .claude/commands/opsx/ and surface as /opsx:… Use plan mode for explore and continue, normal mode for apply. Mirror AGENTS.md into CLAUDE.md."
+    },
+    cursor: {
+      prefix: "/opsx", sep: "-",
+      note: "Commands are flat files in .cursor/commands/. Add STYLE-spec.md and AGENTS.md to Project Rules so they apply without re-attaching. Agent mode for apply, Ask mode for review."
+    },
+    opencode: {
+      prefix: "/opsx", sep: "-",
+      note: "Plan mode cannot write spec files and build mode starts coding too early. Add \"plugin\": [\"opencode-plugin-openspec\"] to opencode.json — it adds an architect agent that writes openspec/ but cannot touch implementation code."
+    }
+  };
+
+  var current = "claude";
+  var noteEl = document.getElementById("toolnote");
+
+  function renderCommands(){
+    var t = TOOLS[current];
+
+    document.querySelectorAll(".cmd .sep").forEach(function(el){
+      el.textContent = t.sep;
+    });
+
+    document.querySelectorAll(".cmdref").forEach(function(el){
+      el.textContent = t.prefix + t.sep + el.getAttribute("data-cmd");
+    });
+
+    noteEl.textContent = t.note;
+  }
+
+  document.querySelectorAll(".seg button").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      current = btn.getAttribute("data-tool");
+      document.querySelectorAll(".seg button").forEach(function(b){
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
+      renderCommands();
+    });
+  });
+
+  renderCommands();
+
+  /* ---------- hold point sign-off (session only, no storage) ---------- */
+  document.querySelectorAll("[data-gate]").forEach(function(gate){
+    var boxes  = gate.querySelectorAll(".checks input");
+    var btn    = gate.querySelector(".sign-btn");
+    var status = gate.querySelector(".sign-status");
+    var stamp  = gate.querySelector(".stamp");
+    var dateEl = gate.querySelector(".stamp-date");
+    var total  = boxes.length;
+
+    function update(){
+      var done = 0;
+      boxes.forEach(function(b){ if(b.checked) done++; });
+      status.textContent = done + " / " + total + " verified";
+      btn.disabled = done < total;
+      if(done < total){
+        stamp.classList.remove("on");
+        btn.textContent = "Sign off " + gate.getAttribute("data-gate");
+      }
+    }
+
+    boxes.forEach(function(b){ b.addEventListener("change", update); });
+
+    btn.addEventListener("click", function(){
+      if(btn.disabled) return;
+      var d = new Date();
+      dateEl.textContent = d.toISOString().slice(0,10) + " " +
+        String(d.getHours()).padStart(2,"0") + ":" +
+        String(d.getMinutes()).padStart(2,"0");
+      stamp.classList.add("on");
+      btn.textContent = "Signed";
+      status.textContent = total + " / " + total + " verified";
+    });
+
+    update();
+  });
+})();
+</script>
+</body>
+</html>
